@@ -1,0 +1,25 @@
+title: Suspicious PowerShell
+
+id: sigma-001
+
+description: Detect suspicious PowerShell execution
+
+logsource:
+  product: windows
+
+detection:
+
+  selection:
+
+    EventID: "4104"
+    User: Administrator
+    CommandLine|contains: powershell
+
+  condition: selection
+
+level: high
+
+mitre:
+  id: T1059
+  tactic: Execution
+  technique: Command and Scripting Interpreter

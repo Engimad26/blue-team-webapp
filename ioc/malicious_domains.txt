@@ -1,0 +1,4 @@
+evil.com
+malware.test
+bad-domain.xyz
+c2-server.net

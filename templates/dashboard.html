@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="topbar card">
+  <div>
+    <span class="pill">{{ scan.label }} · {{ scan.scan_id }}</span>
+    <h1>Dashboard</h1>
+    <p>Incidents grouped by IP, user, or host.</p>
+  </div>
+  <div class="actions">
+    <a class="button secondary" href="{{ url_for('download', scan_id=scan.scan_id) }}">Download report</a>
+    <a class="button secondary" href="{{ url_for('mitre', scan_id=scan.scan_id) }}">MITRE mapping</a>
+    <a class="button secondary" href="{{ url_for('index') }}">New scan</a>
+</div>
+</section>
+
+<section class="grid stats-grid">
+  <div class="card stat"><span>{{ scan.stats.critical }}</span><label>Critical</label></div>
+  <div class="card stat"><span>{{ scan.stats.high }}</span><label>High</label></div>
+  <div class="card stat"><span>{{ scan.stats.medium }}</span><label>Medium</label></div>
+  <div class="card stat"><span>{{ scan.stats.alerts }}</span><label>Alerts</label></div>
+  <div class="card stat"><span>{{ scan.stats.incidents }}</span><label>Incidents</label></div>
+  <div class="card stat"><span>{{ scan.stats.average_score }}</span><label>Avg score</label></div>
+</section>
+
+<section class="card">
+  <h2>Sources</h2>
+  <div class="chips">
+    {% for s in scan.sources %}
+      <span class="chip">{{ s }}</span>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="grid summary-grid">
+  <div class="card">
+    <h2>Top rules</h2>
+    <ul class="summary-list">
+      {% for item in scan.stats.top_rules %}
+        <li>{{ item.name }} <span>{{ item.count }}</span></li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="card">
+    <h2>Top sources</h2>
+    <ul class="summary-list">
+      {% for item in scan.stats.top_sources %}
+        <li>{{ item.name }} <span>{{ item.count }}</span></li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="card">
+    <h2>Top IPs</h2>
+    <ul class="summary-list">
+      {% for item in scan.stats.top_ips %}
+        <li>{{ item.name }} <span>{{ item.count }}</span></li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="card">
+    <h2>Top users</h2>
+    <ul class="summary-list">
+      {% for item in scan.stats.top_users %}
+        <li>{{ item.name }} <span>{{ item.count }}</span></li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+
+<section class="card">
+  <div class="section-row">
+    <h2>Incidents</h2>
+    <input id="searchIncidents" type="search" placeholder="Filter incidents..." />
+  </div>
+  <div class="incident-list" id="incidentList">
+    {% for incident in scan.incidents %}
+      <article class="incident" data-search="{{ (incident.title ~ ' ' ~ incident.key ~ ' ' ~ incident.sources|join(' ') ~ ' ' ~ incident.rules|join(' ') )|lower }}">
+        <div class="incident-head">
+          <div>
+            <div class="severity {{ incident.severity|lower }}">{{ incident.severity }} / {{ incident.score }}</div>
+            <h3>{{ incident.title }}</h3>
+            <p>{{ incident.key }} · {{ incident.sources|join(', ') }} · {{ incident.alert_count }} alerts</p>
+            {% if incident.first_seen or incident.last_seen %}
+            <p>{{ incident.first_seen }} → {{ incident.last_seen }}</p>
+            {% endif %}
+          </div>
+          <a class="button secondary" href="{{ url_for('case', scan_id=scan.scan_id, incident_id=incident.id) }}">Investigate</a>
+        </div>
+        <ul>
+          {% for alert in incident.alerts %}
+            <li>{{ alert.source }} · {{ alert.rule }} · {{ alert.message }} · {{ alert.score }}/100 · {{ alert.mitre }}</li>
+          {% endfor %}
+        </ul>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<script>
+  const search = document.getElementById('searchIncidents');
+  const items = Array.from(document.querySelectorAll('#incidentList .incident'));
+  search?.addEventListener('input', () => {
+    const q = search.value.trim().toLowerCase();
+    items.forEach(item => {
+      const text = item.dataset.search || '';
+      item.style.display = text.includes(q) ? '' : 'none';
+    });
+  });
+</script>
+{% endblock %}

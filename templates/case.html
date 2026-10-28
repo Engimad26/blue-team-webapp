@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="topbar card">
+  <div>
+    <span class="pill">Case {{ incident.id }}</span>
+    <h1>{{ incident.title }}</h1>
+    <p>{{ incident.key }} · {{ incident.severity }} · Score {{ incident.score }}/100</p>
+  </div>
+  <div class="actions">
+    <a class="button secondary" href="{{ url_for('dashboard', scan_id=scan.scan_id) }}">Back</a>
+    <a class="button secondary" href="{{ url_for('mitre', scan_id=scan.scan_id) }}">MITRE mapping</a>
+    <a class="button secondary" href="{{ url_for('download', scan_id=scan.scan_id) }}">Download report</a>
+  </div>
+</section>
+
+<section class="grid stats-grid">
+  <div class="card stat"><span>{{ incident.score }}</span><label>Risk score</label></div>
+  <div class="card stat"><span>{{ incident.alert_count }}</span><label>Alerts</label></div>
+  <div class="card stat"><span>{{ incident.sources|length }}</span><label>Sources</label></div>
+  <div class="card stat"><span>{{ incident.rules|length }}</span><label>Rules</label></div>
+</section>
+
+<section class="grid summary-grid">
+  <div class="card">
+    <h2>Incident summary</h2>
+    <p><strong>Key:</strong> {{ incident.key }}</p>
+    <p><strong>Severity:</strong> {{ incident.severity }}</p>
+    <p><strong>Time range:</strong> {{ incident.first_seen or 'n/a' }} → {{ incident.last_seen or 'n/a' }}</p>
+  </div>
+
+  <div class="card">
+    <h2>Sources</h2>
+    <div class="chips">
+      {% for source in incident.sources %}
+        <span class="chip">{{ source }}</span>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Rules</h2>
+    <div class="chips">
+      {% for rule in incident.rules %}
+        <span class="chip">{{ rule }}</span>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Why this incident was grouped</h2>
+  <p>
+    {% if incident.key.startswith('ip:') %}
+      Same IP: <strong>{{ incident.key[3:] }}</strong>
+    {% elif incident.key.startswith('user:') %}
+      Same user: <strong>{{ incident.key[5:] }}</strong>
+    {% elif incident.key.startswith('host:') %}
+      Same host: <strong>{{ incident.key[5:] }}</strong>
+    {% else %}
+      Grouped by <strong>{{ incident.key }}</strong>
+    {% endif %}
+    {% if incident.sources|length > 1 %}
+      and seen across multiple sources.
+    {% endif %}
+  </p>
+</section>
+
+<section class="card">
+  <h2>Evidence</h2>
+  <div class="incident-list compact">
+    {% for alert in incident.alerts %}
+      <article class="incident">
+        <div class="incident-head">
+          <div>
+            <div class="severity {{ alert.severity|lower }}">{{ alert.severity }} / {{ alert.score }}</div>
+            <h3>{{ alert.rule }}</h3>
+            <p>{{ alert.timestamp }} · {{ alert.source }} · MITRE {{ alert.mitre }}</p>
+          </div>
+        </div>
+        <p>{{ alert.message }}</p>
+        <p><strong>Technique:</strong> {{ alert.tactic }} / {{ alert.technique }}</p>
+        <pre>{{ alert.evidence | tojson(indent=2) }}</pre>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,306 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<section class="hero card">
+  <div>
+    <span class="pill">Blue Team Detection Platform</span>
+
+    <h1>Security log analyzer with scoring, correlation, and reports</h1>
+
+    <p>
+      Upload SSH, Apache, Windows, Firewall and DNS logs, detect attacks,
+      correlate incidents, map them to MITRE ATT&CK, scan with Sigma and IOC,
+      then export a complete investigation report.
+    </p>
+
+    <div class="actions" style="margin-top:18px; display:flex; gap:12px; flex-wrap:wrap;">
+
+      <form action="{{ url_for('load_samples') }}" method="post">
+        <button type="submit">Load Sample Logs</button>
+      </form>
+
+      <form action="{{ url_for('scan') }}" method="post" enctype="multipart/form-data">
+        <input type="file" name="logs" multiple>
+        <button type="submit">Run Detection</button>
+      </form>
+
+    </div>
+
+    <p class="hint" style="margin-top:10px;">
+      Sample mode scans the files stored inside the <strong>samples</strong> folder.
+    </p>
+
+  </div>
+
+  <div class="hero-grid">
+
+    <div class="mini-card">
+      <strong>0-100</strong>
+      <span>Risk Scoring</span>
+    </div>
+
+    <div class="mini-card">
+      <strong>MITRE</strong>
+      <span>ATT&CK Mapping</span>
+    </div>
+
+    <div class="mini-card">
+      <strong>Sigma</strong>
+      <span>Detection Rules</span>
+    </div>
+
+    <div class="mini-card">
+      <strong>IOC</strong>
+      <span>Threat Intelligence</span>
+    </div>
+
+  </div>
+
+</section>
+
+
+<section class="grid summary-grid">
+
+  <div class="card">
+
+    <h2>How it works</h2>
+
+    <div class="summary-list">
+
+      <div>1. Upload logs</div>
+
+      <div>2. Parse & Normalize</div>
+
+      <div>3. Run Detection Rules</div>
+
+      <div>4. Sigma + IOC Matching</div>
+
+      <div>5. Incident Correlation</div>
+
+      <div>6. Export Report</div>
+
+    </div>
+
+  </div>
+
+  <div class="card">
+
+    <h2>Features</h2>
+
+    <div class="summary-list">
+
+      <div>• SSH Detection</div>
+
+      <div>• Apache Detection</div>
+
+      <div>• Windows Detection</div>
+
+      <div>• Firewall Detection</div>
+
+      <div>• DNS Detection</div>
+
+      <div>• Sigma Engine</div>
+
+      <div>• IOC Engine</div>
+
+      <div>• SQLite Database</div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+{% if latest %}
+
+<section class="card">
+
+<h2>Latest Scan</h2>
+
+<div class="stats">
+
+<div>
+<span>{{ latest.stats.critical }}</span>
+<label>Critical</label>
+</div>
+
+<div>
+<span>{{ latest.stats.high }}</span>
+<label>High</label>
+</div>
+
+<div>
+<span>{{ latest.stats.medium }}</span>
+<label>Medium</label>
+</div>
+
+<div>
+<span>{{ latest.stats.low }}</span>
+<label>Low</label>
+</div>
+
+<div>
+<span>{{ latest.stats.alerts }}</span>
+<label>Total Alerts</label>
+</div>
+
+<div>
+<span>{{ latest.stats.incidents }}</span>
+<label>Incidents</label>
+</div>
+
+</div>
+
+<br>
+
+<a class="btn-link"
+href="{{ url_for('dashboard', scan_id=latest.scan_id) }}">
+Open Dashboard
+</a>
+
+</section>
+
+{% endif %}
+
+
+{% if history %}
+
+<section class="card">
+
+<h2>Recent Scans</h2>
+
+<div class="incident-list compact">
+
+{% for scan in history %}
+
+<article class="incident">
+
+<div class="incident-head">
+
+<div>
+
+<div class="severity {{ 'critical' if scan.stats.critical else 'medium' }}">
+{{ scan.label }}
+</div>
+
+<h3>{{ scan.scan_id }}</h3>
+
+<p>
+
+{{ scan.created_at }}
+
+•
+
+{{ scan.stats.alerts }} Alerts
+
+•
+
+{{ scan.stats.incidents }} Incidents
+
+</p>
+
+</div>
+
+<a class="button secondary"
+
+href="{{ url_for('dashboard', scan_id=scan.scan_id) }}">
+
+Open
+
+</a>
+
+</div>
+
+</article>
+
+{% endfor %}
+
+</div>
+
+</section>
+
+{% endif %}
+
+
+<!-- DATABASE ALERT HISTORY -->
+
+<section class="card">
+
+<h2>Database Alert History</h2>
+
+{% if db_alerts %}
+
+<table class="alert-table">
+
+<thead>
+
+<tr>
+
+<th>Severity</th>
+
+<th>Score</th>
+
+<th>Source</th>
+
+<th>Rule</th>
+
+<th>MITRE</th>
+
+<th>IP</th>
+
+<th>User</th>
+
+<th>Timestamp</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for alert in db_alerts %}
+
+<tr>
+
+<td>
+
+<span class="severity {{ alert.severity|lower }}">
+
+{{ alert.severity }}
+
+</span>
+
+</td>
+
+<td>{{ alert.score }}</td>
+
+<td>{{ alert.source }}</td>
+
+<td>{{ alert.rule }}</td>
+
+<td>{{ alert.mitre }}</td>
+
+<td>{{ alert.ip }}</td>
+
+<td>{{ alert.user }}</td>
+
+<td>{{ alert.timestamp }}</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+{% else %}
+
+<p>No alerts stored in the database.</p>
+
+{% endif %}
+
+</section>
+
+{% endblock %}

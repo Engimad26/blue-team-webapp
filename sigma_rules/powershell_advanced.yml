@@ -1,0 +1,28 @@
+title: PowerShell Download
+
+id: sigma-002
+
+description: Detect suspicious PowerShell download commands
+
+logsource:
+  product: windows
+
+detection:
+
+  selection:
+
+    EventID: 4104
+
+    CommandLine|contains_any:
+      - Invoke-WebRequest
+      - DownloadString
+      - Invoke-Expression
+
+  condition: selection
+
+level: critical
+
+mitre:
+  id: T1059
+  tactic: Execution
+  technique: Command and Scripting Interpreter

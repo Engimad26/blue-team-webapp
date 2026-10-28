@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="topbar card">
+  <div>
+    <span class="pill">{{ scan.label }} · {{ scan.scan_id }}</span>
+    <h1>MITRE ATT&CK Mapping</h1>
+    <p>Detection-to-tactic view for this scan.</p>
+  </div>
+  <div class="actions">
+    <a class="button secondary" href="{{ url_for('dashboard', scan_id=scan.scan_id) }}">Back to dashboard</a>
+    <a class="button secondary" href="{{ url_for('download', scan_id=scan.scan_id) }}">Download report</a>
+  </div>
+</section>
+
+<section class="card">
+  {% if mappings %}
+    <div class="incident-list">
+      {% for item in mappings %}
+        <article class="incident">
+          <div class="incident-head">
+            <div>
+              <div class="severity {{ 'critical' if item.score >= 90 else 'high' if item.score >= 75 else 'medium' }}">
+                {{ item.score }}/100
+              </div>
+              <h3>{{ item.tactic }}</h3>
+              <p>{{ item.technique }}</p>
+              <p>{{ item.source }} · MITRE {{ item.mitre }}</p>
+            </div>
+          </div>
+          <p>{{ item.message }}</p>
+          <p><strong>Rule:</strong> {{ item.rule }}</p>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>No MITRE mappings available for this scan.</p>
+  {% endif %}
+</section>
+{% endblock %}
